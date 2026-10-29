@@ -14,7 +14,140 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      plans: {
+        Row: {
+          id: string
+          monthly_look_limit: number
+          monthly_photo_limit: number
+          monthly_tryon_limit: number
+          name: string
+        }
+        Insert: {
+          id?: string
+          monthly_look_limit: number
+          monthly_photo_limit: number
+          monthly_tryon_limit: number
+          name: string
+        }
+        Update: {
+          id?: string
+          monthly_look_limit?: number
+          monthly_photo_limit?: number
+          monthly_tryon_limit?: number
+          name?: string
+        }
+        Relationships: []
+      }
+      store_plans: {
+        Row: {
+          id: string
+          plan_id: string
+          started_at: string
+          store_id: string
+        }
+        Insert: {
+          id?: string
+          plan_id: string
+          started_at?: string
+          store_id: string
+        }
+        Update: {
+          id?: string
+          plan_id?: string
+          started_at?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_plans_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_plans_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stores: {
+        Row: {
+          city: string
+          created_at: string
+          currency: string
+          id: string
+          instagram: string | null
+          logo_url: string | null
+          name: string
+          owner_id: string
+          whatsapp: string
+        }
+        Insert: {
+          city?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          instagram?: string | null
+          logo_url?: string | null
+          name: string
+          owner_id: string
+          whatsapp: string
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          instagram?: string | null
+          logo_url?: string | null
+          name?: string
+          owner_id?: string
+          whatsapp?: string
+        }
+        Relationships: []
+      }
+      usage: {
+        Row: {
+          id: string
+          items_created: number
+          looks_generated: number
+          month: string
+          photos_processed: number
+          store_id: string
+          tryons_done: number
+        }
+        Insert: {
+          id?: string
+          items_created?: number
+          looks_generated?: number
+          month: string
+          photos_processed?: number
+          store_id: string
+          tryons_done?: number
+        }
+        Update: {
+          id?: string
+          items_created?: number
+          looks_generated?: number
+          month?: string
+          photos_processed?: number
+          store_id?: string
+          tryons_done?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usage_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
