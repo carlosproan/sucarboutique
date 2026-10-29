@@ -77,7 +77,12 @@ export async function checkUsageLimit(
     return { allowed: false, metric, used: 0, limit: 0, remaining: 0, planName: null };
   }
 
-  const limit = plan[metricToLimitColumn[metric]];
+  type LimitColumn =
+    | "monthly_photo_limit"
+    | "monthly_look_limit"
+    | "monthly_tryon_limit";
+  const limitColumn = metricToLimitColumn[metric] as LimitColumn;
+  const limit = plan[limitColumn];
   const used = usage?.[metric] ?? 0;
 
   return {

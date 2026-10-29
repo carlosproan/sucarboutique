@@ -19,6 +19,8 @@ function EditarLojaPage() {
   const navigate = useNavigate();
   const overview = Route.useLoaderData();
   const { store } = overview;
+  // O loader redireciona quando não há loja; esta guarda é só para o TypeScript.
+  if (!store) return null;
 
   return (
     <AppShell>

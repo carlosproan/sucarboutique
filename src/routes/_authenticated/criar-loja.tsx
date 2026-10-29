@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { getMyStore, createStore } from "@/server/stores";
 import { StoreForm } from "@/components/store-form";
 import { BrandMark } from "@/components/brand";
@@ -7,7 +7,7 @@ export const Route = createFileRoute("/_authenticated/criar-loja")({
   loader: async () => {
     const overview = await getMyStore();
     if (overview.store) {
-      throw new (await import("@tanstack/react-router")).redirect({ to: "/stock" });
+      throw redirect({ to: "/stock" });
     }
     return null;
   },

@@ -7,7 +7,9 @@
 /** Formata um valor em Kwanza: formatKz(15000) → "15.000 Kz". */
 export function formatKz(value: number): string {
   const negative = value < 0;
-  const [intPart, decPart] = Math.abs(value).toFixed(2).split(".");
+  const fixed = Math.abs(value).toFixed(2);
+  const intPart = fixed.slice(0, -3);
+  const decPart = fixed.slice(-2);
   const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   const decimals = decPart === "00" ? "" : `,${decPart}`;
   return `${negative ? "-" : ""}${grouped}${decimals} Kz`;
