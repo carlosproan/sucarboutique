@@ -26,6 +26,7 @@ const csrfMiddleware = createCsrfMiddleware({
 });
 
 export const startInstance = createStart(() => ({
-  functionMiddleware: [attachSupabaseAuth],
   requestMiddleware: [errorMiddleware, csrfMiddleware],
+  // Anexa o token de sessão do Lovable Cloud às chamadas de server functions.
+  functionMiddleware: [attachSupabaseAuth],
 }));
