@@ -1,24 +1,42 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
+import { BrandMark } from "@/components/brand";
+import { LoadingState } from "@/components/loading-state";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
   component: Index,
+  head: () => ({
+    meta: [
+      { title: "SUCAR Boutique" },
+      {
+        name: "description",
+        content:
+          "Transforma o stock real da tua boutique em looks prontos para partilhar no WhatsApp e Instagram.",
+      },
+    ],
+  }),
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
+// Rota de entrada: com sessão vai para a app, sem sessão vai para o login.
 function Index() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase.auth.getSession().then(({ data }) => {
+      if (cancelled) return;
+      navigate({ to: data.session ? "/stock" : "/auth", replace: true });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-background px-4">
+      <BrandMark />
+      <LoadingState message="A abrir a SUCAR Boutique…" />
     </div>
   );
 }
