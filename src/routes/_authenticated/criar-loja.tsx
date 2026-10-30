@@ -1,5 +1,5 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { getMyStore, createStore } from "@/server/stores";
+import { getMyStore, createStore } from "@/lib/stores.functions";
 import { StoreForm } from "@/components/store-form";
 import { BrandMark } from "@/components/brand";
 
