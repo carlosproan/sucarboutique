@@ -227,7 +227,7 @@ function StockPage() {
                 <div className="min-w-0 flex-1 space-y-2">
                   <div className="grid grid-cols-2 gap-2">
                     <Select
-                      value={draft.category || undefined}
+                      {...(draft.category ? { value: draft.category } : {})}
                       onValueChange={(value) =>
                         updateDraft(draft.id, { category: value as StockCategory })
                       }
