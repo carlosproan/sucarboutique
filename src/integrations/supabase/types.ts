@@ -38,6 +38,44 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_items: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          photo_path: string
+          price: number
+          size: string
+          store_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          photo_path: string
+          price?: number
+          size?: string
+          store_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          photo_path?: string
+          price?: number
+          size?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_items_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_plans: {
         Row: {
           id: string
