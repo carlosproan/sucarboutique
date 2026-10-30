@@ -40,7 +40,6 @@ export interface StockItemView {
   createdAt: string;
 }
 
-type TypedSupabase = Parameters<Parameters<typeof requireSupabaseAuth.middleware>[0]["context"]>[never];
 
 /** Converte um data URL JPEG em bytes para o upload. */
 function dataUrlToBytes(dataUrl: string): Uint8Array {
