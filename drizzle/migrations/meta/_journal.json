@@ -8,6 +8,13 @@
       "when": 1793280202936,
       "tag": "0000_sucar_phase0_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793359980207,
+      "tag": "0001_create_stock_items",
+      "breakpoints": true
     }
   ]
 }

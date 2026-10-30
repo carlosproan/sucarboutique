@@ -61,6 +61,9 @@
   /* Tipografia: serif editorial para títulos, sans limpa para texto */
   --font-display: "Fraunces", ui-serif, Georgia, serif;
   --font-sans: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+  /* Laranja de destaque para as ações principais do stock */
+  --color-cta: var(--cta);
+  --color-cta-foreground: var(--cta-foreground);
 }
 
 :root {
@@ -85,6 +88,8 @@
   --border: oklch(0.9 0.02 80);
   --input: oklch(0.9 0.02 80);
   --ring: oklch(0.56 0.13 40);
+  --cta: oklch(0.66 0.19 45);
+  --cta-foreground: oklch(0.99 0.006 85);
   --chart-1: oklch(0.56 0.13 40);
   --chart-2: oklch(0.68 0.1 60);
   --chart-3: oklch(0.8 0.09 82);
@@ -121,6 +126,8 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.72 0.12 45);
+  --cta: oklch(0.70 0.19 48);
+  --cta-foreground: oklch(0.18 0.02 45);
   --chart-1: oklch(0.72 0.12 45);
   --chart-2: oklch(0.68 0.1 60);
   --chart-3: oklch(0.8 0.09 82);
