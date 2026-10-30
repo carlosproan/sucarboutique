@@ -1,5 +1,5 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { getMyStore, updateStore } from "@/server/stores";
+import { getMyStore, updateStore } from "@/lib/stores.functions";
 import { StoreForm } from "@/components/store-form";
 import { PageHeader } from "@/components/page-header";
 import { AppShell } from "@/components/app-shell";

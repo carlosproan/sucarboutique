@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Shirt } from "lucide-react";
-import { getMyStore } from "@/server/stores";
+import { getMyStore } from "@/lib/stores.functions";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";

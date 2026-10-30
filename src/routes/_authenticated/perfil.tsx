@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { LogOut, Moon, Sun } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { getMyStore } from "@/server/stores";
+import { getMyStore } from "@/lib/stores.functions";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
