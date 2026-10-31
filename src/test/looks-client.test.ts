@@ -22,9 +22,9 @@ describe("buildLooks", () => {
       piece("saia", "Saia", 10000),
     ]);
     expect(looks).toHaveLength(1);
-    expect(looks[0].name).toBe("Blusa + Saia");
-    expect(looks[0].totalPrice).toBe(18000);
-    expect(looks[0].pieces.map((p) => p.id)).toEqual(["blusa", "saia"]);
+    expect(looks[0]!.name).toBe("Blusa + Saia");
+    expect(looks[0]!.totalPrice).toBe(18000);
+    expect(looks[0]!.pieces.map((p) => p.id)).toEqual(["blusa", "saia"]);
   });
 
   it("cria o Look 2 como vestido completo com acessórios", () => {
@@ -34,13 +34,13 @@ describe("buildLooks", () => {
       piece("bolsa", "Bolsa", 5000),
     ]);
     expect(looks).toHaveLength(1);
-    expect(looks[0].name).toBe("Vestido completo");
-    expect(looks[0].pieces.map((p) => p.id)).toEqual([
+    expect(looks[0]!.name).toBe("Vestido completo");
+    expect(looks[0]!.pieces.map((p) => p.id)).toEqual([
       "vestido",
       "sapato",
       "bolsa",
     ]);
-    expect(looks[0].totalPrice).toBe(42000);
+    expect(looks[0]!.totalPrice).toBe(42000);
   });
 
   it("cria o Look 3 casual com as peças que sobraram, sem repetir peças", () => {
@@ -67,8 +67,8 @@ describe("buildLooks", () => {
   it("com stock sem pares cria uma combinação casual", () => {
     const looks = buildLooks([piece("blusa", "Blusa", 8000)]);
     expect(looks).toHaveLength(1);
-    expect(looks[0].name).toBe("Combinação casual");
-    expect(looks[0].totalPrice).toBe(8000);
+    expect(looks[0]!.name).toBe("Combinação casual");
+    expect(looks[0]!.totalPrice).toBe(8000);
   });
 
   it("stock vazio não cria looks", () => {
