@@ -19,6 +19,13 @@ import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -67,6 +74,7 @@ function StockPage() {
   const [pending, setPending] = useState<StockDraft[]>([]);
   const [processing, setProcessing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -178,6 +186,41 @@ function StockPage() {
           event.target.value = "";
         }}
       />
+
+      {/* Escolha: câmara agora ou galeria */}
+      <Drawer open={pickerOpen} onOpenChange={setPickerOpen}>
+        <DrawerContent>
+          <DrawerHeader className="text-center">
+            <DrawerTitle className="font-display text-base text-foreground">
+              Como queres adicionar as fotos?
+            </DrawerTitle>
+            <DrawerDescription className="text-sm text-muted-foreground">
+              Podes escolher até 10 fotos de cada vez.
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="space-y-2 px-4 pb-6">
+            <Button
+              className={`min-h-12 w-full text-base font-semibold ${ctaClasses}`}
+              onClick={() => {
+                setPickerOpen(false);
+                cameraInputRef.current?.click();
+              }}
+            >
+              📷 Tirar foto agora
+            </Button>
+            <Button
+              variant="outline"
+              className="min-h-12 w-full text-base"
+              onClick={() => {
+                setPickerOpen(false);
+                galleryInputRef.current?.click();
+              }}
+            >
+              🖼️ Escolher da galeria
+            </Button>
+          </div>
+        </DrawerContent>
+      </Drawer>
 
       <PageHeader
         title="Meu Stock"
@@ -315,16 +358,9 @@ function StockPage() {
             </p>
             <Button
               className={`mt-6 min-h-14 w-full rounded-xl text-base font-semibold ${ctaClasses}`}
-              onClick={() => galleryInputRef.current?.click()}
+              onClick={() => setPickerOpen(true)}
             >
               📸 Tirar foto do meu stock
-            </Button>
-            <Button
-              variant="outline"
-              className="mt-3 min-h-12 w-full"
-              onClick={() => cameraInputRef.current?.click()}
-            >
-              📷 Usar a câmara
             </Button>
           </section>
           <p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">
