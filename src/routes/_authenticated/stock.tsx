@@ -187,6 +187,41 @@ function StockPage() {
         }}
       />
 
+      {/* Escolha: câmara agora ou galeria */}
+      <Drawer open={pickerOpen} onOpenChange={setPickerOpen}>
+        <DrawerContent>
+          <DrawerHeader className="text-center">
+            <DrawerTitle className="font-display text-base text-foreground">
+              Como queres adicionar as fotos?
+            </DrawerTitle>
+            <DrawerDescription className="text-sm text-muted-foreground">
+              Podes escolher até 10 fotos de cada vez.
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="space-y-2 px-4 pb-6">
+            <Button
+              className={`min-h-12 w-full text-base font-semibold ${ctaClasses}`}
+              onClick={() => {
+                setPickerOpen(false);
+                cameraInputRef.current?.click();
+              }}
+            >
+              📷 Tirar foto agora
+            </Button>
+            <Button
+              variant="outline"
+              className="min-h-12 w-full text-base"
+              onClick={() => {
+                setPickerOpen(false);
+                galleryInputRef.current?.click();
+              }}
+            >
+              🖼️ Escolher da galeria
+            </Button>
+          </div>
+        </DrawerContent>
+      </Drawer>
+
       <PageHeader
         title="Meu Stock"
         subtitle="🔒 Seguro: só você vê"
