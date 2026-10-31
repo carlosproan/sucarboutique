@@ -19,6 +19,13 @@ import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -67,6 +74,7 @@ function StockPage() {
   const [pending, setPending] = useState<StockDraft[]>([]);
   const [processing, setProcessing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -315,16 +323,9 @@ function StockPage() {
             </p>
             <Button
               className={`mt-6 min-h-14 w-full rounded-xl text-base font-semibold ${ctaClasses}`}
-              onClick={() => galleryInputRef.current?.click()}
+              onClick={() => setPickerOpen(true)}
             >
               📸 Tirar foto do meu stock
-            </Button>
-            <Button
-              variant="outline"
-              className="mt-3 min-h-12 w-full"
-              onClick={() => cameraInputRef.current?.click()}
-            >
-              📷 Usar a câmara
             </Button>
           </section>
           <p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">
