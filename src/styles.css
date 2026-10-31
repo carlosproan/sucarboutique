@@ -64,6 +64,8 @@
   /* Laranja de destaque para as ações principais do stock */
   --color-cta: var(--cta);
   --color-cta-foreground: var(--cta-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
 }
 
 :root {
@@ -90,6 +92,9 @@
   --ring: oklch(0.56 0.13 40);
   --cta: oklch(0.66 0.19 45);
   --cta-foreground: oklch(0.99 0.006 85);
+  /* Verde de sucesso para o botão "Copiar para WhatsApp" */
+  --success: oklch(0.56 0.14 152);
+  --success-foreground: oklch(0.98 0.01 140);
   --chart-1: oklch(0.56 0.13 40);
   --chart-2: oklch(0.68 0.1 60);
   --chart-3: oklch(0.8 0.09 82);
@@ -128,6 +133,9 @@
   --ring: oklch(0.72 0.12 45);
   --cta: oklch(0.70 0.19 48);
   --cta-foreground: oklch(0.18 0.02 45);
+  /* Verde de sucesso para o botão "Copiar para WhatsApp" */
+  --success: oklch(0.72 0.14 152);
+  --success-foreground: oklch(0.16 0.02 150);
   --chart-1: oklch(0.72 0.12 45);
   --chart-2: oklch(0.68 0.1 60);
   --chart-3: oklch(0.8 0.09 82);
