@@ -39,6 +39,16 @@ export function planPhotoBatch(
 }
 
 /**
+ * Valor total do stock em Kz: soma simples dos preços das peças salvas.
+ * sumStockValue([{price: 120000}, {price: 65000}]) → 185000.
+ */
+export function sumStockValue(
+  items: Array<{ price: number }>,
+): number {
+  return items.reduce((sum, item) => sum + item.price, 0);
+}
+
+/**
  * Preço em Kz a partir do que a utilizadora escreveu: aceita espaços e
  * pontos de milhar ("15 000", "2.500"), vírgula decimal e devolve 0
  * quando não há número válido.

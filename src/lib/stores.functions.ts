@@ -13,6 +13,8 @@ export interface StoreOverview {
   plan: PlanRow | null;
   usage: UsageRow | null;
   logoUrl: string | null;
+  /** Soma dos preços de todas as peças do stock (valor em Kz). */
+  stockValue: number;
 }
 
 /** Mês corrente no formato aaaa-mm (espec.: datas em dd/mm/aaaa, consumo por mês). */
