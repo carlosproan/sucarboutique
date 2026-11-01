@@ -56,8 +56,17 @@ export const getMyStore = createServerFn({ method: "GET" })
       throw new Error("Não foi possível carregar a tua loja. Tenta outra vez.");
     }
     if (!store) {
-      return { store: null, plan: null, usage: null, logoUrl: null };
+      return { store: null, plan: null, usage: null, logoUrl: null, stockValue: 0 };
     }
+
+    const { data: stockPrices } = await supabase
+      .from("stock_items")
+      .select("price")
+      .eq("store_id", store.id);
+    const stockValue = (stockPrices ?? []).reduce(
+      (sum, row) => sum + Number(row.price),
+      0,
+    );
 
     const { data: storePlan } = await supabase
       .from("store_plans")
@@ -87,6 +96,7 @@ export const getMyStore = createServerFn({ method: "GET" })
       plan: (storePlan?.plans as PlanRow | null) ?? null,
       usage: usage ?? null,
       logoUrl,
+      stockValue,
     };
   });
 
