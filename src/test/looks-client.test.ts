@@ -51,7 +51,7 @@ describe("buildLooks", () => {
       piece("calca1", "Calça", 11000),
     ]);
     expect(looks).toHaveLength(2);
-    expect(looks[1].name).toBe("Camisa + Calça");
+    expect(looks[1]!.name).toBe("Camisa + Calça");
     const allIds = looks.flatMap((look) => look.pieces.map((p) => p.id));
     expect(new Set(allIds).size).toBe(allIds.length);
   });
