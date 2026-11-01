@@ -59,9 +59,9 @@ export function maskWhatsapp(normalized: string): string {
  * antes do @. maskEmail("carlos552@gmail.com") → "c****552@gmail.com".
  */
 export function maskEmail(email: string): string {
-  const [local, domain] = email.split("@");
-  if (!domain || local.length === 0) return email;
-  const visibleTail = local.slice(-3);
-  const visibleHead = local.slice(0, 1);
-  return `${visibleHead}****${visibleTail}@${domain}`;
+  const atIndex = email.indexOf("@");
+  if (atIndex < 1) return email;
+  const local = email.slice(0, atIndex);
+  const domain = email.slice(atIndex + 1);
+  return `${local.slice(0, 1)}****${local.slice(-3)}@${domain}`;
 }
