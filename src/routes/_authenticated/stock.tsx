@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Camera, ImageOff, Loader2, Plus, X } from "lucide-react";
+import { Banknote, Camera, ImageOff, Loader2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { getMyStore } from "@/lib/stores.functions";
 import { getStockItems, saveStockItems } from "@/lib/stock.functions";
@@ -11,6 +11,7 @@ import {
   planPhotoBatch,
   STOCK_CATEGORIES,
   STOCK_SIZES,
+  sumStockValue,
   type StockCategory,
   type StockSize,
 } from "@/lib/stock-client";
