@@ -241,6 +241,15 @@ function StockPage() {
         }
       />
 
+      <p
+        className="-mt-4 mb-6 flex items-center gap-1.5 text-sm font-semibold text-success"
+        aria-live="polite"
+      >
+        <Banknote className="size-4 shrink-0" aria-hidden="true" />
+        Total em stock: {countLabel}
+        {formatKz(totalStock)}
+      </p>
+
       {processing ? (
         <p className="mb-4 flex items-center gap-2 text-sm text-muted-foreground" role="status">
           <Loader2 className="size-4 animate-spin" aria-hidden="true" />
