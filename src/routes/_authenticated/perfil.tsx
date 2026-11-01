@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { LogOut, Moon, Sun } from "lucide-react";
+import { Camera, Copy, LogOut, MessageCircle, Moon, Sun } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyStore } from "@/lib/stores.functions";
 import { AppShell } from "@/components/app-shell";
@@ -8,8 +8,18 @@ import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useTheme } from "@/hooks/use-theme";
-import { displayWhatsapp } from "@/lib/format";
+import { maskEmail, maskWhatsapp } from "@/lib/format";
+
+/** Número de suporte da SUCAR (WhatsApp de ajuda rápida). */
+const SUPPORT_WHATSAPP = "+244923000000";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   loader: async () => {
@@ -23,7 +33,7 @@ export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
     meta: [
       { title: "Perfil da loja · SUCAR Boutique" },
-      { name: "description", content: "Dados da loja, plano e consumo do mês." },
+      { name: "description", content: "Dados da loja, plano e ajuda rápida." },
     ],
   }),
 });
@@ -34,10 +44,11 @@ function PerfilPage() {
   const { store } = overview;
   // O loader redireciona quando não há loja; esta guarda é só para o TypeScript.
   if (!store) return null;
-  const { plan, usage, logoUrl } = overview;
+  const { plan, usage } = overview;
   const { theme, toggle } = useTheme();
   const [accountEmail, setAccountEmail] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setAccountEmail(data.user?.email ?? null));
@@ -53,7 +64,6 @@ function PerfilPage() {
   }
 
   const planName = plan?.name ?? "Sem plano";
-  const monthLabel = usage ? usage.month.split("-").reverse().join("/") : "";
 
   return (
     <AppShell>
@@ -61,9 +71,9 @@ function PerfilPage() {
         title="Perfil da loja"
         action={
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
-            className="min-h-11 px-4"
+            className="min-h-11 px-3 text-muted-foreground hover:text-foreground"
             onClick={() => navigate({ to: "/editar-loja" })}
           >
             Editar
@@ -71,12 +81,13 @@ function PerfilPage() {
         }
       />
 
-      {/* Dados da loja */}
+      {/* Minha loja */}
       <section className="rounded-2xl border bg-card p-5">
-        <div className="flex items-center gap-4">
-          {logoUrl ? (
+        <h2 className="font-display text-base font-semibold text-foreground">Minha loja</h2>
+        <div className="mt-4 flex items-center gap-4">
+          {overview.logoUrl ? (
             <img
-              src={logoUrl}
+              src={overview.logoUrl}
               alt={`Logótipo de ${store.name}`}
               className="size-16 rounded-full border object-cover"
             />
@@ -86,65 +97,101 @@ function PerfilPage() {
             </div>
           )}
           <div className="min-w-0">
-            <h2 className="truncate font-display text-lg font-semibold text-foreground">
+            <h3 className="truncate font-display text-lg font-semibold text-foreground">
               {store.name}
-            </h2>
+            </h3>
             <p className="truncate text-sm text-muted-foreground">
               {store.city} · {store.currency}
             </p>
           </div>
         </div>
         <Separator className="my-4" />
-        <dl className="space-y-2 text-sm">
-          {store.instagram ? (
+        <dl className="space-y-4 text-sm">
+          <div>
             <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">Instagram</dt>
-              <dd className="truncate font-medium text-foreground">@{store.instagram}</dd>
+              <dt className="text-muted-foreground">WhatsApp de vendas</dt>
+              <dd className="font-medium text-foreground">{maskWhatsapp(store.whatsapp)}</dd>
             </div>
-          ) : null}
-          <div className="flex justify-between gap-4">
-            <dt className="text-muted-foreground">WhatsApp</dt>
-            <dd className="font-medium text-foreground">{displayWhatsapp(store.whatsapp)}</dd>
+            <p className="mt-1 text-xs text-success">
+              🔒 Só aparece quando você postar
+            </p>
           </div>
           {accountEmail ? (
             <div className="flex justify-between gap-4">
               <dt className="text-muted-foreground">Conta</dt>
-              <dd className="truncate font-medium text-foreground">{accountEmail}</dd>
+              <dd className="truncate font-medium text-foreground">{maskEmail(accountEmail)}</dd>
             </div>
           ) : null}
         </dl>
       </section>
 
-      {/* Plano e consumo do mês */}
+      {/* Teu plano */}
       <section className="mt-4 rounded-2xl border bg-card p-5">
         <div className="flex items-center justify-between gap-4">
-          <h3 className="font-display text-base font-semibold text-foreground">Plano atual</h3>
+          <h2 className="font-display text-base font-semibold text-foreground">Teu plano</h2>
           <Badge className="bg-accent text-accent-foreground hover:bg-accent">{planName}</Badge>
         </div>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {monthLabel ? `Consumo de ${monthLabel}` : "Consumo do mês"}
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">Rápido, fácil e seguro</p>
         <ul className="mt-4 space-y-3 text-sm">
-          <UsageRow label="Fotos processadas" used={usage?.photos_processed ?? 0} limit={plan?.monthly_photo_limit ?? 0} />
-          <UsageRow label="Looks gerados" used={usage?.looks_generated ?? 0} limit={plan?.monthly_look_limit ?? 0} />
-          <UsageRow label="Try-ons" used={usage?.tryons_done ?? 0} limit={plan?.monthly_tryon_limit ?? 0} />
-          <UsageRow label="Peças criadas" used={usage?.items_created ?? 0} />
+          <UsageRow
+            label="Roupas fotografadas"
+            used={usage?.photos_processed ?? 0}
+            limit={plan?.monthly_photo_limit ?? 0}
+          />
+          <UsageRow
+            label="Looks prontos para vender"
+            used={usage?.looks_generated ?? 0}
+            limit={plan?.monthly_look_limit ?? 0}
+          />
         </ul>
+        <div className="mt-4 rounded-xl bg-success/10 px-4 py-3 text-xs font-medium text-success">
+          ✅ Backup seguro — teu stock guardado mesmo se perderes o telefone
+        </div>
+      </section>
+
+      {/* Ajuda rápida */}
+      <section className="mt-4 rounded-2xl border bg-card p-5">
+        <h2 className="font-display text-base font-semibold text-foreground">Ajuda rápida</h2>
+        <div className="mt-4 space-y-3">
+          <Button
+            className="min-h-12 w-full justify-start bg-success text-success-foreground hover:bg-success/90"
+            asChild
+          >
+            <a
+              href={`https://wa.me/${SUPPORT_WHATSAPP.replace(/\D/g, "")}?text=${encodeURIComponent("Olá! Preciso de ajuda com a SUCAR.")}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <MessageCircle className="size-4" />
+              Falar com suporte no WhatsApp
+            </a>
+          </Button>
+          <Button
+            variant="outline"
+            className="min-h-12 w-full justify-start"
+            onClick={() => setHelpOpen(true)}
+          >
+            <Camera className="size-4" />
+            Ver como postar em 30s
+          </Button>
+        </div>
       </section>
 
       {/* Preferências e sessão */}
-      <section className="mt-4 space-y-3">
+      <section className="mt-6 space-y-2">
         <Button
-          variant="outline"
-          className="min-h-12 w-full justify-start"
+          variant="ghost"
+          size="sm"
+          className="min-h-10 w-full justify-center text-muted-foreground hover:text-foreground"
           onClick={toggle}
         >
           {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
           {theme === "dark" ? "Mudar para modo claro" : "Mudar para modo escuro"}
         </Button>
         <Button
-          variant="outline"
-          className="min-h-12 w-full justify-start border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+          variant="ghost"
+          size="sm"
+          className="min-h-10 w-full justify-center text-muted-foreground hover:text-destructive"
           onClick={handleSignOut}
           disabled={signingOut}
         >
@@ -152,34 +199,88 @@ function PerfilPage() {
           {signingOut ? "A terminar sessão…" : "Terminar sessão"}
         </Button>
       </section>
+
+      {/* Como postar em 30s */}
+      <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
+        <DialogContent className="rounded-2xl sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display">Como postar em 30 segundos</DialogTitle>
+            <DialogDescription>Três passos simples, sem complicações.</DialogDescription>
+          </DialogHeader>
+          <ol className="space-y-4 text-sm">
+            <HelpStep
+              number={1}
+              title="Tira foto do teu stock"
+              text="Na aba Stock, fotografia as roupas como estão, mesmo amontoadas."
+              icon={<Camera className="size-4" />}
+            />
+            <HelpStep
+              number={2}
+              title="Nós criamos os looks"
+              text="Em 15 segundos tens 3 combinações com preço e legenda prontos."
+              icon={<Copy className="size-4" />}
+            />
+            <HelpStep
+              number={3}
+              title="Copia e publica"
+              text="Copia para o WhatsApp e publica. Só depois é que o teu WhatsApp aparece."
+              icon={<MessageCircle className="size-4" />}
+            />
+          </ol>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }
 
-function UsageRow({ label, used, limit }: { label: string; used: number; limit?: number }) {
-  const pct = limit && limit > 0 ? Math.min(100, (used / limit) * 100) : 0;
+function UsageRow({ label, used, limit }: { label: string; used: number; limit: number }) {
+  const pct = limit > 0 ? Math.min(100, (used / limit) * 100) : 0;
   return (
     <li>
       <div className="flex items-center justify-between gap-4">
         <span className="text-muted-foreground">{label}</span>
         <span className="font-medium text-foreground">
-          {used}
-          {typeof limit === "number" ? ` de ${limit}` : ""}
+          {used} de {limit}
         </span>
       </div>
-      {typeof limit === "number" ? (
-        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-full rounded-full bg-primary transition-all"
-            style={{ width: `${pct}%` }}
-            role="progressbar"
-            aria-valuenow={used}
-            aria-valuemin={0}
-            aria-valuemax={limit}
-            aria-label={label}
-          />
-        </div>
-      ) : null}
+      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
+        <div
+          className="h-full rounded-full bg-primary transition-all"
+          style={{ width: `${pct}%` }}
+          role="progressbar"
+          aria-valuenow={used}
+          aria-valuemin={0}
+          aria-valuemax={limit}
+          aria-label={label}
+        />
+      </div>
+    </li>
+  );
+}
+
+function HelpStep({
+  number,
+  title,
+  text,
+  icon,
+}: {
+  number: number;
+  title: string;
+  text: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <li className="flex gap-3">
+      <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-semibold text-secondary-foreground">
+        {number}
+      </div>
+      <div className="min-w-0">
+        <p className="flex items-center gap-2 font-medium text-foreground">
+          <span className="text-muted-foreground">{icon}</span>
+          {title}
+        </p>
+        <p className="mt-1 text-muted-foreground">{text}</p>
+      </div>
     </li>
   );
 }
