@@ -44,3 +44,24 @@ export function displayWhatsapp(normalized: string): string {
   const local = normalized.slice(4);
   return `+244 ${local.slice(0, 3)} ${local.slice(3, 6)} ${local.slice(6)}`;
 }
+
+/**
+ * Máscara segura de WhatsApp: só os últimos 4 dígitos ficam visíveis.
+ * maskWhatsapp("+244923456789") → "**** 6789".
+ */
+export function maskWhatsapp(normalized: string): string {
+  const digits = normalized.replace(/\D/g, "");
+  return `**** ${digits.slice(-4)}`;
+}
+
+/**
+ * Máscara segura de email: primeira letra + "****" + últimos 3 carateres
+ * antes do @. maskEmail("carlos552@gmail.com") → "c****552@gmail.com".
+ */
+export function maskEmail(email: string): string {
+  const atIndex = email.indexOf("@");
+  if (atIndex < 1) return email;
+  const local = email.slice(0, atIndex);
+  const domain = email.slice(atIndex + 1);
+  return `${local.slice(0, 1)}****${local.slice(-3)}@${domain}`;
+}

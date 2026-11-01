@@ -44,6 +44,8 @@ export function planPhotoBatch(
  * quando não há número válido.
  */
 export function parsePriceKz(input: string): number {
+  // Qualquer sinal de menos torna o preço inválido (nunca preço negativo).
+  if (input.includes("-")) return 0;
   const cleaned = input.replace(/[^\d.,]/g, "").trim();
   if (cleaned.length === 0) return 0;
   const normalized = cleaned.replace(/\./g, "").replace(",", ".");
