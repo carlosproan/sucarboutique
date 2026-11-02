@@ -29,7 +29,8 @@ export const Route = createFileRoute("/_authenticated/looks")({
       throw redirect({ to: "/criar-loja" });
     }
     const { items } = await getStockItems();
-    return { storeName: overview.store.name, items };
+    const { name, whatsapp, city } = overview.store;
+    return { store: { name, whatsapp, city }, items };
   },
   component: LooksPage,
   head: () => ({
@@ -54,12 +55,12 @@ const EXAMPLE_LOOKS = [
 ];
 
 function LooksPage() {
-  const { storeName, items } = Route.useLoaderData();
+  const { store, items } = Route.useLoaderData();
   const looks = useMemo(
-    () => buildLooks(items, storeName),
-    [items, storeName],
+    () => buildLooks(items, store),
+    [items, store],
   );
-  const [captionLook, setCaptionLook] = useState<GeneratedLook | null>(null);
+  const [piecesLook, setPiecesLook] = useState<GeneratedLook | null>(null);
 
   async function copyCaption(caption: string) {
     const copied = await copyText(caption);
@@ -136,7 +137,7 @@ function LooksPage() {
                 key={`${look.name}-${index}`}
                 className="flex gap-3 rounded-2xl border bg-card p-3"
               >
-                <LookImage pieces={look.pieces} />
+                <LookImage pieces={look.pieces} totalPrice={look.totalPrice} />
                 <div className="flex min-w-0 flex-1 flex-col">
                   <h2 className="font-display text-base font-semibold leading-snug text-foreground">
                     Look {index + 1}: {look.name}
@@ -146,17 +147,17 @@ function LooksPage() {
                   </p>
                   <div className="mt-auto space-y-2 pt-3">
                     <Button
-                      className={`min-h-11 w-full text-sm font-semibold ${whatsappClasses}`}
+                      className={`min-h-12 w-full text-sm font-semibold ${whatsappClasses}`}
                       onClick={() => void copyCaption(look.caption)}
                     >
-                      Copiar para WhatsApp
+                      Copiar legenda + preço para WhatsApp
                     </Button>
                     <Button
                       variant="outline"
                       className="min-h-10 w-full text-sm"
-                      onClick={() => setCaptionLook(look)}
+                      onClick={() => setPiecesLook(look)}
                     >
-                      Ver legenda
+                      Ver peças desse look
                     </Button>
                   </div>
                 </div>
@@ -166,26 +167,33 @@ function LooksPage() {
         </section>
       )}
 
-      <Drawer open={captionLook !== null} onOpenChange={(open) => !open && setCaptionLook(null)}>
+      <Drawer open={piecesLook !== null} onOpenChange={(open) => !open && setPiecesLook(null)}>
         <DrawerContent>
           <DrawerHeader className="text-center">
             <DrawerTitle className="font-display text-base text-foreground">
-              Legenda pronta para WhatsApp
+              Peças desse look
             </DrawerTitle>
             <DrawerDescription className="text-sm text-muted-foreground">
-              Copia e cola na conversa com as tuas clientes.
+              Preços das peças que compõem o look.
             </DrawerDescription>
           </DrawerHeader>
-          <div className="space-y-3 px-4 pb-6">
-            <pre className="max-h-72 overflow-y-auto whitespace-pre-wrap rounded-xl border bg-secondary/50 p-3 font-sans text-sm leading-relaxed text-foreground">
-              {captionLook?.caption ?? ""}
-            </pre>
-            <Button
-              className={`min-h-12 w-full text-base font-semibold ${whatsappClasses}`}
-              onClick={() => captionLook && void copyCaption(captionLook.caption)}
-            >
-              Copiar legenda
-            </Button>
+          <ul className="space-y-2 px-4">
+            {piecesLook?.pieces.map((piece) => (
+              <li
+                key={piece.id}
+                className="flex items-center justify-between gap-4 rounded-xl border bg-card px-3 py-2.5 text-sm"
+              >
+                <span className="text-foreground">
+                  {piece.category}{" "}
+                  <span className="text-muted-foreground">· {piece.size}</span>
+                </span>
+                <span className="font-semibold text-foreground">{formatKz(piece.price)}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="flex items-center justify-between px-4 pb-6 pt-3 text-sm font-semibold">
+            <span className="text-muted-foreground">TOTAL LOOK</span>
+            <span className="text-foreground">{formatKz(piecesLook?.totalPrice ?? 0)}</span>
           </div>
         </DrawerContent>
       </Drawer>
@@ -193,8 +201,14 @@ function LooksPage() {
   );
 }
 
-/** Foto do look: as peças empilhadas (até 2) num quadradinho. */
-function LookImage({ pieces }: { pieces: GeneratedLook["pieces"] }) {
+/** Foto do look com a tarja do total no canto inferior direito. */
+function LookImage({
+  pieces,
+  totalPrice,
+}: {
+  pieces: GeneratedLook["pieces"];
+  totalPrice: number;
+}) {
   const photos = pieces
     .map((piece) => piece.photoUrl)
     .filter((url): url is string => Boolean(url))
@@ -217,10 +231,16 @@ function LookImage({ pieces }: { pieces: GeneratedLook["pieces"] }) {
         </div>
       )}
       {extraCount > 0 ? (
-        <span className="absolute bottom-1 right-1 rounded-full bg-background/85 px-1.5 py-0.5 text-[10px] font-semibold text-foreground">
+        <span className="absolute bottom-5 right-1 rounded-full bg-background/85 px-1.5 py-0.5 text-[10px] font-semibold text-foreground">
           +{extraCount}
         </span>
       ) : null}
+      <span
+        className="absolute inset-x-0 bottom-0 bg-background/90 px-1.5 py-0.5 text-right text-[10px] font-bold text-foreground"
+        aria-label={`Total do look: ${formatKz(totalPrice)}`}
+      >
+        TOTAL LOOK: {formatKz(totalPrice)}
+      </span>
     </div>
   );
 }
