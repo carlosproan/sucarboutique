@@ -4,6 +4,7 @@ import {
   MAX_PHOTOS_PER_BATCH,
   parsePriceKz,
   planPhotoBatch,
+  sumStockValue,
 } from "@/lib/stock-client";
 
 describe("Regras do Stock", () => {
@@ -27,5 +28,11 @@ describe("Regras do Stock", () => {
     expect(parsePriceKz("")).toBe(0);
     expect(parsePriceKz("-5")).toBe(0);
     expect(parsePriceKz("abc")).toBe(0);
+  });
+
+  it("soma o valor total do stock em Kz", () => {
+    expect(sumStockValue([])).toBe(0);
+    expect(sumStockValue([{ price: 120000 }, { price: 65000 }])).toBe(185000);
+    expect(sumStockValue([{ price: 0 }])).toBe(0);
   });
 });
