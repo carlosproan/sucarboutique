@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useTheme } from "@/hooks/use-theme";
-import { maskEmail, maskWhatsapp } from "@/lib/format";
+import { formatKz, maskEmail, maskWhatsapp } from "@/lib/format";
 
 /** Número de suporte da SUCAR (WhatsApp de ajuda rápida). */
 const SUPPORT_WHATSAPP = "+244923000000";
@@ -45,6 +45,7 @@ function PerfilPage() {
   // O loader redireciona quando não há loja; esta guarda é só para o TypeScript.
   if (!store) return null;
   const { plan, usage } = overview;
+  const stockValue = overview.stockValue;
   const { theme, toggle } = useTheme();
   const [accountEmail, setAccountEmail] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
@@ -103,6 +104,14 @@ function PerfilPage() {
             <p className="truncate text-sm text-muted-foreground">
               {store.city} · {store.currency}
             </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Valor do teu stock:{" "}
+              {stockValue > 0 ? (
+                <span className="font-semibold text-success">{formatKz(stockValue)}</span>
+              ) : (
+                <span className="font-medium text-foreground">{formatKz(stockValue)}</span>
+              )}
+            </p>
           </div>
         </div>
         <Separator className="my-4" />
@@ -137,6 +146,7 @@ function PerfilPage() {
             label="Roupas fotografadas"
             used={usage?.photos_processed ?? 0}
             limit={plan?.monthly_photo_limit ?? 0}
+            detail={`${formatKz(stockValue)} em stock`}
           />
           <UsageRow
             label="Looks prontos para vender"
@@ -233,14 +243,26 @@ function PerfilPage() {
   );
 }
 
-function UsageRow({ label, used, limit }: { label: string; used: number; limit: number }) {
+function UsageRow({
+  label,
+  used,
+  limit,
+  detail,
+}: {
+  label: string;
+  used: number;
+  limit: number;
+  /** Texto extra à direita, ex.: "0 Kz em stock". */
+  detail?: string;
+}) {
   const pct = limit > 0 ? Math.min(100, (used / limit) * 100) : 0;
   return (
     <li>
       <div className="flex items-center justify-between gap-4">
         <span className="text-muted-foreground">{label}</span>
-        <span className="font-medium text-foreground">
+        <span className="text-right font-medium text-foreground">
           {used} de {limit}
+          {detail ? <span className="text-muted-foreground"> | {detail}</span> : null}
         </span>
       </div>
       <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
