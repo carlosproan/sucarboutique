@@ -163,9 +163,7 @@ function StockPage() {
   const itemCount = items.length;
   const totalStock = sumStockValue(items);
   const countLabel =
-    itemCount > 0
-      ? `${itemCount} ${itemCount === 1 ? "peça" : "peças"} | `
-      : "";
+    itemCount > 0 ? `${itemCount} ${itemCount === 1 ? "peça" : "peças"} | ` : "";
 
   return (
     <AppShell>
