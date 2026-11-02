@@ -1,9 +1,9 @@
 /**
  * Regras do ecrã de Looks (lado do cliente): combinações criadas a partir
- * do stock guardado, legenda pronta para WhatsApp e cópia para a área de
- * transferência. Funções puras testáveis + um utilitário de clipboard.
+ * do stock guardado, legenda pronta para WhatsApp no formato do post e
+ * cópia para a área de transferência. Funções puras testáveis.
  */
-import { formatKz } from "@/lib/format";
+import { formatKz, maskWhatsapp } from "@/lib/format";
 
 export interface LookPiece {
   id: string;
@@ -28,20 +28,13 @@ const DRESS_CATEGORY = "Vestido";
 const SET_CATEGORY = "Conjunto";
 const EXTRA_CATEGORIES = ["Sapato", "Bolsa"];
 
-const CATEGORY_EMOJI: Record<string, string> = {
-  Blusa: "👚",
-  Camisa: "👔",
-  Calça: "👖",
-  Vestido: "👗",
-  Saia: "👗",
-  Conjunto: "🧥",
-  Sapato: "👠",
-  Bolsa: "👜",
-};
-
-function categoryEmoji(category: string): string {
-  return CATEGORY_EMOJI[category] ?? "🛍️";
+/** Dados da loja usados na legenda: nome, WhatsApp (vai mascarado) e cidade. */
+export interface StoreContact {
+  name: string;
+  whatsapp: string;
+  city: string;
 }
+
 
 /**
  * Cria até 3 looks a partir das peças do stock:
@@ -50,7 +43,7 @@ function categoryEmoji(category: string): string {
  * 3. Combinação casual com as peças que sobraram
  * Nunca repete a mesma peça em dois looks.
  */
-export function buildLooks(items: LookPiece[], storeName?: string): GeneratedLook[] {
+export function buildLooks(items: LookPiece[], store?: StoreContact): GeneratedLook[] {
   const unused = new Set(items.map((item) => item.id));
   const findUnused = (predicate: (item: LookPiece) => boolean) =>
     items.find((item) => unused.has(item.id) && predicate(item));
@@ -120,29 +113,51 @@ export function buildLooks(items: LookPiece[], storeName?: string): GeneratedLoo
 
   return drafts.map((draft) => ({
     ...draft,
-    caption: buildCaption(draft, storeName),
+    caption: buildCaption(draft, store),
   }));
 }
 
-/** Legenda WhatsApp: peças com preço, total e convite para reservar. */
+/** Dias da semana em português, no formato do título do look. */
+const WEEKDAY_LABELS = [
+  "DOMINGO",
+  "SEGUNDA FEIRA",
+  "TERÇA FEIRA",
+  "QUARTA FEIRA",
+  "QUINTA FEIRA",
+  "SEXTA FEIRA",
+  "SÁBADO",
+] as const;
+
+/** Título do dia atual, ex.: "QUINTA FEIRA" → "LOOK DE QUINTA FEIRA ✨". */
+export function lookDayTitle(date: Date = new Date()): string {
+  return WEEKDAY_LABELS[date.getDay()];
+}
+
+/**
+ * Legenda WhatsApp no formato do post:
+ * "LOOK DE QUINTA FEIRA ✨" + frase de impacto + peças com preço +
+ * "TOTAL: 85.000 Kz" + "Encomendas: **** 1944" + "Marishop - Luanda".
+ */
 export function buildCaption(
-  look: Pick<GeneratedLook, "name" | "pieces" | "totalPrice">,
-  storeName?: string,
+  look: Pick<GeneratedLook, "pieces" | "totalPrice">,
+  store?: StoreContact,
 ): string {
   const lines = [
-    `✨ ${look.name}`,
+    `LOOK DE ${lookDayTitle()} ✨`,
     "",
-    ...look.pieces.map(
-      (piece) =>
-        `${categoryEmoji(piece.category)} ${piece.category} · ${piece.size} — ${formatKz(piece.price)}`,
-    ),
+    "Elegância em todos os detalhes.",
     "",
-    `💰 Total: ${formatKz(look.totalPrice)}`,
+    ...look.pieces.map((piece) => `${piece.category}: ${formatKz(piece.price)}`),
+    "",
+    `TOTAL: ${formatKz(look.totalPrice)}`,
   ];
-  if (storeName) {
-    lines.push(`🏷️ ${storeName}`);
+  if (store) {
+    lines.push(
+      "",
+      `Encomendas: ${maskWhatsapp(store.whatsapp)}`,
+      `${store.name} - ${store.city}`,
+    );
   }
-  lines.push("📩 Responde a esta mensagem para reservar o teu look!");
   return lines.join("\n");
 }
 
