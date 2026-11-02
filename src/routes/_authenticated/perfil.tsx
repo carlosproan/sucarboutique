@@ -45,6 +45,7 @@ function PerfilPage() {
   // O loader redireciona quando não há loja; esta guarda é só para o TypeScript.
   if (!store) return null;
   const { plan, usage } = overview;
+  const stockValue = overview.stockValue;
   const { theme, toggle } = useTheme();
   const [accountEmail, setAccountEmail] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
