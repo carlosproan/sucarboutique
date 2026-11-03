@@ -3,6 +3,7 @@ import {
   buildCaption,
   buildLooks,
   lookCountLabel,
+  lookDayTitle,
   type LookPiece,
 } from "@/lib/looks-client";
 
