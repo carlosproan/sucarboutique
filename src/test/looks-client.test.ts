@@ -77,20 +77,31 @@ describe("buildLooks", () => {
 });
 
 describe("buildCaption", () => {
-  it("inclui as peças, o total formatado e o nome da loja", () => {
+  it("inclui o título do dia, peças com preço, total, WhatsApp mascarado e loja", () => {
     const caption = buildCaption(
       {
-        name: "Blusa + Saia",
         pieces: [piece("blusa", "Blusa", 8000), piece("saia", "Saia", 10000, "L")],
         totalPrice: 18000,
       },
-      "Boutique Rosa",
+      {
+        name: "Boutique Rosa",
+        whatsapp: "+2449234561944",
+        city: "Luanda",
+      },
     );
-    expect(caption).toContain("✨ Blusa + Saia");
-    expect(caption).toContain("Blusa · M — 8.000 Kz");
-    expect(caption).toContain("Saia · L — 10.000 Kz");
-    expect(caption).toContain("💰 Total: 18.000 Kz");
-    expect(caption).toContain("🏷️ Boutique Rosa");
+    expect(caption.startsWith("LOOK DE ")).toBe(true);
+    expect(caption).toContain("✨");
+    expect(caption).toContain("Elegância em todos os detalhes.");
+    expect(caption).toContain("Blusa: 8.000 Kz");
+    expect(caption).toContain("Saia: 10.000 Kz");
+    expect(caption).toContain("TOTAL: 18.000 Kz");
+    expect(caption).toContain("Encomendas: **** 1944");
+    expect(caption).toContain("Boutique Rosa - Luanda");
+  });
+
+  it("lookDayTitle devolve o dia da semana em português", () => {
+    // 3 de novembro de 2026 é uma terça-feira.
+    expect(lookDayTitle(new Date(2026, 10, 3))).toBe("TERÇA FEIRA");
   });
 });
 

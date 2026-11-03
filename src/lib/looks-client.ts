@@ -130,7 +130,7 @@ const WEEKDAY_LABELS = [
 
 /** Título do dia atual, ex.: "QUINTA FEIRA" → "LOOK DE QUINTA FEIRA ✨". */
 export function lookDayTitle(date: Date = new Date()): string {
-  return WEEKDAY_LABELS[date.getDay()];
+  return WEEKDAY_LABELS[date.getDay()] ?? "SEGUNDA FEIRA";
 }
 
 /**
