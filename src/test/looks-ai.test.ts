@@ -37,9 +37,9 @@ describe("parseAiLooks", () => {
     });
     const looks = parseAiLooks(raw, STOCK);
     expect(looks).toHaveLength(1);
-    expect(looks[0].pieces.map((p) => p.id)).toEqual(["p1", "p2"]);
-    expect(looks[0].totalPrice).toBe(18000);
-    expect(looks[0].name).toBe("Look de trabalho");
+    expect(looks[0]!.pieces.map((p) => p.id)).toEqual(["p1", "p2"]);
+    expect(looks[0]!.totalPrice).toBe(18000);
+    expect(looks[0]!.name).toBe("Look de trabalho");
   });
 
   it("descarta ids que não existem no stock", () => {
@@ -47,8 +47,8 @@ describe("parseAiLooks", () => {
       looks: [{ name: "Look", note: "", piece_ids: ["p1", "inexistente", "p4"] }],
     });
     const looks = parseAiLooks(raw, STOCK);
-    expect(looks[0].pieces.map((p) => p.id)).toEqual(["p1", "p4"]);
-    expect(looks[0].totalPrice).toBe(23000);
+    expect(looks[0]!.pieces.map((p) => p.id)).toEqual(["p1", "p4"]);
+    expect(looks[0]!.totalPrice).toBe(23000);
   });
 
   it("não repete a mesma peça em dois looks", () => {

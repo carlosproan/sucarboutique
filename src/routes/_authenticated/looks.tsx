@@ -1,10 +1,6 @@
 import { useMemo, useState } from "react";
-import {
-  createFileRoute,
-  Link,
-  redirect,
-  useServerFn,
-} from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { Lock, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { getMyStore } from "@/lib/stores.functions";
