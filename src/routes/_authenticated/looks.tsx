@@ -1,9 +1,21 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Link,
+  redirect,
+  useServerFn,
+} from "@tanstack/react-router";
 import { Lock, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { getMyStore } from "@/lib/stores.functions";
 import { getStockItems } from "@/lib/stock.functions";
+import { generateAiLooks } from "@/lib/looks.functions";
+import {
+  AI_OCCASIONS,
+  AI_STYLES,
+  aiLookCaption,
+  type AiLookPreview,
+} from "@/lib/looks-ai";
 import {
   buildLooks,
   copyText,
@@ -60,7 +72,9 @@ function LooksPage() {
     () => buildLooks(items, store),
     [items, store],
   );
-  const [piecesLook, setPiecesLook] = useState<GeneratedLook | null>(null);
+  const [piecesLook, setPiecesLook] = useState<
+    Pick<GeneratedLook, "pieces" | "totalPrice"> | null
+  >(null);
   const [occasion, setOccasion] = useState<string>(AI_OCCASIONS[0]);
   const [style, setStyle] = useState<string>(AI_STYLES[0]);
   const [aiLooks, setAiLooks] = useState<AiLookPreview[]>([]);
@@ -103,6 +117,102 @@ function LooksPage() {
         title="Looks prontos para vender"
         subtitle="🔒 Só você vê até postar"
       />
+
+      {canUseAi && (
+        <section aria-label="Looks feitos à tua medida" className="mb-6 space-y-3">
+          <div className="space-y-3 rounded-2xl border bg-card p-4">
+            <div className="flex items-center gap-2">
+              <Sparkles className="size-5 text-cta" aria-hidden="true" />
+              <h2 className="font-display text-base font-semibold text-foreground">
+                Looks feitos à tua medida
+              </h2>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Diz a ocasião e o estilo — nós combinamos as tuas peças com IA.
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="space-y-1 text-xs font-medium text-muted-foreground">
+                Ocasião
+                <select
+                  value={occasion}
+                  onChange={(event) => setOccasion(event.target.value)}
+                  className="w-full rounded-lg border bg-secondary px-2.5 py-2.5 text-sm text-foreground"
+                  disabled={aiBusy}
+                >
+                  {AI_OCCASIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="space-y-1 text-xs font-medium text-muted-foreground">
+                Estilo
+                <select
+                  value={style}
+                  onChange={(event) => setStyle(event.target.value)}
+                  className="w-full rounded-lg border bg-secondary px-2.5 py-2.5 text-sm text-foreground"
+                  disabled={aiBusy}
+                >
+                  {AI_STYLES.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <Button
+              className={`min-h-12 w-full text-sm font-semibold ${ctaClasses}`}
+              disabled={aiBusy}
+              onClick={() => void generateAi()}
+            >
+              {aiBusy ? "✨ A criar os teus looks…" : "✨ Criar looks com IA"}
+            </Button>
+          </div>
+
+          {aiLooks.length > 0 && (
+            <ul className="space-y-3">
+              {aiLooks.map((look, index) => (
+                <li
+                  key={`${look.name}-${index}`}
+                  className="flex gap-3 rounded-2xl border bg-card p-3"
+                >
+                  <LookImage pieces={look.pieces} totalPrice={look.totalPrice} />
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <h3 className="font-display text-base font-semibold leading-snug text-foreground">
+                      {look.name}
+                    </h3>
+                    {look.note && (
+                      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                        {look.note}
+                      </p>
+                    )}
+                    <p className="mt-1 text-sm font-semibold text-primary">
+                      {formatKz(look.totalPrice)}
+                    </p>
+                    <div className="mt-auto space-y-2 pt-3">
+                      <Button
+                        className={`min-h-12 w-full text-sm font-semibold ${whatsappClasses}`}
+                        onClick={() => void copyCaption(aiLookCaption(look, store))}
+                      >
+                        Copiar legenda + preço para WhatsApp
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="min-h-10 w-full text-sm"
+                        onClick={() => setPiecesLook(look)}
+                      >
+                        Ver peças desse look
+                      </Button>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
       {items.length === 0 ? (
         <section className="space-y-6">
