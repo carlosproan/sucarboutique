@@ -61,6 +61,32 @@ function LooksPage() {
     [items, store],
   );
   const [piecesLook, setPiecesLook] = useState<GeneratedLook | null>(null);
+  const [occasion, setOccasion] = useState<string>(AI_OCCASIONS[0]);
+  const [style, setStyle] = useState<string>(AI_STYLES[0]);
+  const [aiLooks, setAiLooks] = useState<AiLookPreview[]>([]);
+  const [aiBusy, setAiBusy] = useState(false);
+  const generateAiFn = useServerFn(generateAiLooks);
+
+  const canUseAi = items.length >= 2;
+
+  async function generateAi() {
+    setAiBusy(true);
+    try {
+      const { looks: result } = await generateAiFn({ data: { occasion, style } });
+      setAiLooks(result);
+      toast.success(
+        `${result.length} ${result.length === 1 ? "look criado" : "looks criados"} com IA!`,
+      );
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível criar os looks agora. Tenta outra vez.",
+      );
+    } finally {
+      setAiBusy(false);
+    }
+  }
 
   async function copyCaption(caption: string) {
     const copied = await copyText(caption);

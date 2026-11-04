@@ -52,10 +52,10 @@ function extractOutputText(response: { output?: unknown }): string {
 
 /** Mensagem amigável em português para falhas do gateway. */
 function gatewayMessage(error: GatewayError): string {
-  if (error instanceof GatewayError && error.code === "payment_required") {
+  if (error.code === "payment_required") {
     return "Os créditos para criar looks com IA acabaram. Fala com quem gere a conta.";
   }
-  if (error instanceof GatewayError && error.code === "rate_limit") {
+  if (error.code === "rate_limited") {
     return "Muitos pedidos agora. Espera um pouco e tenta outra vez.";
   }
   return "Não foi possível criar os looks agora. Tenta outra vez.";
