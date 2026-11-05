@@ -60,8 +60,8 @@ describe("parseAiLooks", () => {
     });
     const looks = parseAiLooks(raw, STOCK);
     expect(looks).toHaveLength(2);
-    expect(looks[1].pieces.map((p) => p.id)).toEqual(["p3"]);
-    expect(looks[1].totalPrice).toBe(25000);
+    expect(looks[1]!.pieces.map((p) => p.id)).toEqual(["p3"]);
+    expect(looks[1]!.totalPrice).toBe(25000);
   });
 
   it("devolve no máximo 3 looks", () => {
