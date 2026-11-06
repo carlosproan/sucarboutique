@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      look_favorites: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          note: string
+          occasion: string
+          pieces: Json
+          store_id: string
+          style: string
+          total_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          note?: string
+          occasion: string
+          pieces: Json
+          store_id: string
+          style: string
+          total_price: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          note?: string
+          occasion?: string
+          pieces?: Json
+          store_id?: string
+          style?: string
+          total_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "look_favorites_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plans: {
         Row: {
           id: string
