@@ -10,8 +10,9 @@ import {
   GatewayError,
   generateResponse,
 } from "@lovable.dev/ai-gateway";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database, Json } from "@/integrations/supabase/types";
 import type { LookPiece } from "@/lib/looks-client";
 import {
   AI_SYSTEM_INSTRUCTIONS,
@@ -59,7 +60,7 @@ export interface AiLookFavoriteView extends AiLookPreview {
 type FavoriteRow = Database["public"]["Tables"]["look_favorites"]["Row"];
 
 async function favoriteView(
-  supabase: Awaited<ReturnType<typeof getFavoriteContext>>["supabase"],
+  supabase: SupabaseClient<Database>,
   row: FavoriteRow,
 ): Promise<AiLookFavoriteView> {
   const parsedPieces = z.array(favoritePieceSchema).safeParse(row.pieces);
@@ -90,13 +91,6 @@ async function favoriteView(
     totalPrice: Number(row.total_price),
     createdAt: row.created_at,
   };
-}
-
-async function getFavoriteContext() {
-  const { supabase, userId } = await import("@/integrations/supabase/auth-middleware").then(
-    () => ({ supabase: undefined, userId: undefined }),
-  );
-  return { supabase, userId };
 }
 
 /** Extrai o texto da resposta do modelo, parte por parte. */
@@ -239,4 +233,122 @@ export const generateAiLooks = createServerFn({ method: "POST" })
     }
 
     return { looks, planName: plan.name };
+  });
+
+/** Lista os favoritos da loja, incluindo URLs temporárias para as fotos. */
+export const getAiLookFavorites = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ favorites: AiLookFavoriteView[] }> => {
+    const { supabase, userId } = context;
+    const { data: store } = await supabase
+      .from("stores")
+      .select("id")
+      .eq("owner_id", userId)
+      .maybeSingle();
+    if (!store) return { favorites: [] };
+
+    const { data: rows, error } = await supabase
+      .from("look_favorites")
+      .select("*")
+      .eq("store_id", store.id)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error("Não foi possível carregar os looks favoritos.");
+
+    return {
+      favorites: await Promise.all((rows ?? []).map((row) => favoriteView(supabase, row))),
+    };
+  });
+
+/** Guarda um snapshot do look após validar as peças no stock desta loja. */
+export const saveAiLookFavorite = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => favoriteSchema.parse(input))
+  .handler(async ({ context, data }): Promise<{ favorite: AiLookFavoriteView }> => {
+    const { supabase, userId } = context;
+    const { data: store } = await supabase
+      .from("stores")
+      .select("id")
+      .eq("owner_id", userId)
+      .maybeSingle();
+    if (!store) throw new Error("Não encontrámos a tua loja. Entra outra vez.");
+
+    const uniqueIds = [...new Set(data.pieceIds)];
+    if (uniqueIds.length !== data.pieceIds.length) {
+      throw new Error("Este look contém peças repetidas.");
+    }
+    const { data: stockRows, error: stockError } = await supabase
+      .from("stock_items")
+      .select("id, category, size, price, photo_path")
+      .eq("store_id", store.id)
+      .in("id", uniqueIds);
+    if (stockError || !stockRows || stockRows.length !== uniqueIds.length) {
+      throw new Error("Uma ou mais peças já não estão no teu stock. Gera outro look.");
+    }
+    const rowsById = new Map(stockRows.map((row) => [row.id, row]));
+    const snapshot = uniqueIds.map((id) => {
+      const row = rowsById.get(id);
+      if (!row) throw new Error("Uma ou mais peças já não estão no teu stock.");
+      return {
+        id: row.id,
+        category: row.category,
+        size: row.size,
+        price: Number(row.price),
+        photoPath: row.photo_path,
+      };
+    });
+    const { data: existing, error: existingError } = await supabase
+      .from("look_favorites")
+      .select("*")
+      .eq("store_id", store.id)
+      .order("created_at", { ascending: false });
+    if (existingError) throw new Error("Não foi possível guardar este look.");
+
+    const signature = [...uniqueIds].sort().join(":");
+    const duplicate = (existing ?? []).find((row) => {
+      const parsed = z.array(favoritePieceSchema).safeParse(row.pieces);
+      return parsed.success && parsed.data.map((piece) => piece.id).sort().join(":") === signature;
+    });
+    if (duplicate) {
+      return { favorite: await favoriteView(supabase, duplicate) };
+    }
+
+    const totalPrice = snapshot.reduce((sum, piece) => sum + piece.price, 0);
+    const { data: saved, error: saveError } = await supabase
+      .from("look_favorites")
+      .insert({
+        store_id: store.id,
+        name: data.name,
+        note: data.note,
+        occasion: data.occasion,
+        style: data.style,
+        pieces: snapshot as Json,
+        total_price: totalPrice,
+      })
+      .select("*")
+      .single();
+    if (saveError || !saved) throw new Error("Não foi possível guardar este look.");
+    return { favorite: await favoriteView(supabase, saved) };
+  });
+
+/** Remove um favorito somente da loja autenticada. */
+export const deleteAiLookFavorite = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => favoriteIdSchema.parse(input))
+  .handler(async ({ context, data }): Promise<{ deleted: boolean }> => {
+    const { supabase, userId } = context;
+    const { data: store } = await supabase
+      .from("stores")
+      .select("id")
+      .eq("owner_id", userId)
+      .maybeSingle();
+    if (!store) throw new Error("Não encontrámos a tua loja. Entra outra vez.");
+    const { data: deleted, error } = await supabase
+      .from("look_favorites")
+      .delete()
+      .eq("store_id", store.id)
+      .eq("id", data.id)
+      .select("id")
+      .maybeSingle();
+    if (error) throw new Error("Não foi possível retirar este favorito.");
+    return { deleted: Boolean(deleted) };
   });
