@@ -21,6 +21,7 @@ import {
 import {
   buildLooks,
   copyText,
+  lookPieceSignature,
   lookCountLabel,
   type GeneratedLook,
 } from "@/lib/looks-client";
@@ -119,9 +120,9 @@ function LooksPage() {
   }
 
   async function toggleFavorite(look: AiLookPreview) {
-    const signature = look.pieces.map((piece) => piece.id).sort().join(":");
+    const signature = lookPieceSignature(look.pieces);
     const saved = favorites.find(
-      (favorite) => favorite.pieces.map((piece) => piece.id).sort().join(":") === signature,
+      (favorite) => lookPieceSignature(favorite.pieces) === signature,
     );
     setFavoriteBusy(signature);
     try {
@@ -242,13 +243,13 @@ function LooksPage() {
                         type="button"
                         variant="ghost"
                         size="icon"
-                        aria-label={favorites.some((favorite) => favorite.pieces.map((piece) => piece.id).sort().join(":") === look.pieces.map((piece) => piece.id).sort().join(":")) ? "Retirar dos favoritos" : "Guardar nos favoritos"}
-                        title={favorites.some((favorite) => favorite.pieces.map((piece) => piece.id).sort().join(":") === look.pieces.map((piece) => piece.id).sort().join(":")) ? "Retirar dos favoritos" : "Guardar nos favoritos"}
+                        aria-label={favorites.some((favorite) => lookPieceSignature(favorite.pieces) === lookPieceSignature(look.pieces)) ? "Retirar dos favoritos" : "Guardar nos favoritos"}
+                        title={favorites.some((favorite) => lookPieceSignature(favorite.pieces) === lookPieceSignature(look.pieces)) ? "Retirar dos favoritos" : "Guardar nos favoritos"}
                         disabled={favoriteBusy !== null}
                         onClick={() => void toggleFavorite(look)}
                       >
                         <Heart
-                          className={`size-5 ${favorites.some((favorite) => favorite.pieces.map((piece) => piece.id).sort().join(":") === look.pieces.map((piece) => piece.id).sort().join(":")) ? "fill-destructive text-destructive" : "text-muted-foreground"}`}
+                          className={`size-5 ${favorites.some((favorite) => lookPieceSignature(favorite.pieces) === lookPieceSignature(look.pieces)) ? "fill-destructive text-destructive" : "text-muted-foreground"}`}
                           aria-hidden="true"
                         />
                       </Button>

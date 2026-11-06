@@ -12,3 +12,4 @@
 ## Architecture decisions
 - Server functions (`createServerFn`) live in `src/lib/*.functions.ts` — never under `src/server/` or `src/pages/`; `src/server/**` is import-protected and any client-reachable import there breaks the production build (dev server masks it).
 - Server-only helpers (admin clients, providers, secrets) get a `*.server.ts` filename or stay in a directory never imported by client code.
+- AI look favorites are store-scoped snapshots written through authenticated server functions, so owners can reshare looks without trusting client-supplied prices or pieces.

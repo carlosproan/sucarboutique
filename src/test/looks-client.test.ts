@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildCaption,
   buildLooks,
+  lookPieceSignature,
   lookCountLabel,
   lookDayTitle,
   type LookPiece,
@@ -113,5 +114,13 @@ describe("lookCountLabel", () => {
 
   it("usa o plural com 3 looks", () => {
     expect(lookCountLabel(3)).toBe("3 looks criados em 15s");
+  });
+});
+
+describe("lookPieceSignature", () => {
+  it("trata o mesmo conjunto de peças como favorito independentemente da ordem", () => {
+    expect(lookPieceSignature([{ id: "blusa" }, { id: "saia" }])).toBe(
+      lookPieceSignature([{ id: "saia" }, { id: "blusa" }]),
+    );
   });
 });
