@@ -1,11 +1,17 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Lock, Sparkles } from "lucide-react";
+import { Heart, Lock, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { getMyStore } from "@/lib/stores.functions";
 import { getStockItems } from "@/lib/stock.functions";
-import { generateAiLooks } from "@/lib/looks.functions";
+import {
+  deleteAiLookFavorite,
+  generateAiLooks,
+  getAiLookFavorites,
+  saveAiLookFavorite,
+  type AiLookFavoriteView,
+} from "@/lib/looks.functions";
 import {
   AI_OCCASIONS,
   AI_STYLES,
@@ -15,6 +21,7 @@ import {
 import {
   buildLooks,
   copyText,
+  lookPieceSignature,
   lookCountLabel,
   type GeneratedLook,
 } from "@/lib/looks-client";
@@ -37,8 +44,9 @@ export const Route = createFileRoute("/_authenticated/looks")({
       throw redirect({ to: "/criar-loja" });
     }
     const { items } = await getStockItems();
+    const { favorites } = await getAiLookFavorites();
     const { name, whatsapp, city } = overview.store;
-    return { store: { name, whatsapp, city }, items };
+    return { store: { name, whatsapp, city }, items, favorites };
   },
   component: LooksPage,
   head: () => ({
@@ -63,7 +71,7 @@ const EXAMPLE_LOOKS = [
 ];
 
 function LooksPage() {
-  const { store, items } = Route.useLoaderData();
+  const { store, items, favorites: loadedFavorites } = Route.useLoaderData();
   const looks = useMemo(
     () => buildLooks(items, store),
     [items, store],
@@ -74,8 +82,12 @@ function LooksPage() {
   const [occasion, setOccasion] = useState<string>(AI_OCCASIONS[0]);
   const [style, setStyle] = useState<string>(AI_STYLES[0]);
   const [aiLooks, setAiLooks] = useState<AiLookPreview[]>([]);
+  const [favorites, setFavorites] = useState<AiLookFavoriteView[]>(loadedFavorites);
   const [aiBusy, setAiBusy] = useState(false);
+  const [favoriteBusy, setFavoriteBusy] = useState<string | null>(null);
   const generateAiFn = useServerFn(generateAiLooks);
+  const saveFavoriteFn = useServerFn(saveAiLookFavorite);
+  const deleteFavoriteFn = useServerFn(deleteAiLookFavorite);
 
   const canUseAi = items.length >= 2;
 
@@ -104,6 +116,53 @@ function LooksPage() {
       toast.success("Legenda copiada! Agora é só colar no WhatsApp.");
     } else {
       toast.error("Não conseguimos copiar. Tenta outra vez.");
+    }
+  }
+
+  async function toggleFavorite(look: AiLookPreview) {
+    const signature = lookPieceSignature(look.pieces);
+    const saved = favorites.find(
+      (favorite) => lookPieceSignature(favorite.pieces) === signature,
+    );
+    setFavoriteBusy(signature);
+    try {
+      if (saved) {
+        await deleteFavoriteFn({ data: { id: saved.id } });
+        setFavorites((current) => current.filter((favorite) => favorite.id !== saved.id));
+        toast.success("Look retirado dos favoritos.");
+      } else {
+        const { favorite } = await saveFavoriteFn({
+          data: {
+            name: look.name,
+            note: look.note,
+            occasion,
+            style,
+            pieceIds: look.pieces.map((piece) => piece.id),
+          },
+        });
+        setFavorites((current) => [
+          favorite,
+          ...current.filter((item) => item.id !== favorite.id),
+        ]);
+        toast.success("Look guardado nos favoritos.");
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível atualizar os favoritos.");
+    } finally {
+      setFavoriteBusy(null);
+    }
+  }
+
+  async function removeFavorite(favorite: AiLookFavoriteView) {
+    setFavoriteBusy(favorite.id);
+    try {
+      await deleteFavoriteFn({ data: { id: favorite.id } });
+      setFavorites((current) => current.filter((item) => item.id !== favorite.id));
+      toast.success("Look retirado dos favoritos.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível retirar este favorito.");
+    } finally {
+      setFavoriteBusy(null);
     }
   }
 
@@ -176,9 +235,25 @@ function LooksPage() {
                 >
                   <LookImage pieces={look.pieces} totalPrice={look.totalPrice} />
                   <div className="flex min-w-0 flex-1 flex-col">
-                    <h3 className="font-display text-base font-semibold leading-snug text-foreground">
-                      {look.name}
-                    </h3>
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-display text-base font-semibold leading-snug text-foreground">
+                        {look.name}
+                      </h3>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label={favorites.some((favorite) => lookPieceSignature(favorite.pieces) === lookPieceSignature(look.pieces)) ? "Retirar dos favoritos" : "Guardar nos favoritos"}
+                        title={favorites.some((favorite) => lookPieceSignature(favorite.pieces) === lookPieceSignature(look.pieces)) ? "Retirar dos favoritos" : "Guardar nos favoritos"}
+                        disabled={favoriteBusy !== null}
+                        onClick={() => void toggleFavorite(look)}
+                      >
+                        <Heart
+                          className={`size-5 ${favorites.some((favorite) => lookPieceSignature(favorite.pieces) === lookPieceSignature(look.pieces)) ? "fill-destructive text-destructive" : "text-muted-foreground"}`}
+                          aria-hidden="true"
+                        />
+                      </Button>
+                    </div>
                     {look.note && (
                       <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
                         {look.note}
@@ -207,6 +282,61 @@ function LooksPage() {
               ))}
             </ul>
           )}
+        </section>
+      )}
+
+      {favorites.length > 0 && (
+        <section aria-label="Looks favoritos" className="mb-6 space-y-3">
+          <div className="flex items-center gap-2">
+            <Heart className="size-5 fill-destructive text-destructive" aria-hidden="true" />
+            <h2 className="font-display text-base font-semibold text-foreground">Looks favoritos</h2>
+            <span className="text-sm text-muted-foreground">{favorites.length}</span>
+          </div>
+          <ul className="space-y-3">
+            {favorites.map((favorite) => (
+              <li key={favorite.id} className="flex gap-3 rounded-2xl border bg-card p-3">
+                <LookImage pieces={favorite.pieces} totalPrice={favorite.totalPrice} />
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-display text-base font-semibold leading-snug text-foreground">
+                      {favorite.name}
+                    </h3>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Retirar dos favoritos"
+                      title="Retirar dos favoritos"
+                      disabled={favoriteBusy !== null}
+                      onClick={() => void removeFavorite(favorite)}
+                    >
+                      <Heart className="size-5 fill-destructive text-destructive" aria-hidden="true" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{favorite.occasion} · {favorite.style}</p>
+                  {favorite.note && (
+                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{favorite.note}</p>
+                  )}
+                  <p className="mt-1 text-sm font-semibold text-primary">{formatKz(favorite.totalPrice)}</p>
+                  <div className="mt-auto space-y-2 pt-3">
+                    <Button
+                      className={`min-h-12 w-full text-sm font-semibold ${whatsappClasses}`}
+                      onClick={() => void copyCaption(aiLookCaption(favorite, store))}
+                    >
+                      Copiar legenda + preço para WhatsApp
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="min-h-10 w-full text-sm"
+                      onClick={() => setPiecesLook(favorite)}
+                    >
+                      Ver peças desse look
+                    </Button>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 

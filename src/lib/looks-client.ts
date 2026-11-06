@@ -22,6 +22,11 @@ export interface GeneratedLook {
   caption: string;
 }
 
+/** Chave estável para comparar combinações sem depender da ordem das peças. */
+export function lookPieceSignature(pieces: Array<Pick<LookPiece, "id">>): string {
+  return pieces.map((piece) => piece.id).sort().join(":");
+}
+
 const TOP_CATEGORIES = ["Blusa", "Camisa"];
 const BOTTOM_CATEGORIES = ["Calça", "Saia"];
 const DRESS_CATEGORY = "Vestido";

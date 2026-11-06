@@ -15,6 +15,13 @@
       "when": 1793359980207,
       "tag": "0001_create_stock_items",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793979149784,
+      "tag": "0002_create_look_favorites",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,2 @@
+- [ ] Add store-scoped persistent AI look favorites and re-share actions.
+- [ ] Validate migration, types, tests, compilation, and preview flow.
