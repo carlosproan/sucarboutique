@@ -25,12 +25,78 @@ const generateSchema = z.object({
   style: z.string().trim().min(1, "Escolhe o estilo.").max(60),
 });
 
+const favoriteSchema = z.object({
+  name: z.string().trim().min(1).max(80),
+  note: z.string().max(160),
+  occasion: z.string().trim().min(1).max(60),
+  style: z.string().trim().min(1).max(60),
+  pieceIds: z.array(z.string().uuid()).min(1).max(4),
+});
+const favoriteIdSchema = z.object({ id: z.string().uuid() });
+const favoritePieceSchema = z.object({
+  id: z.string().uuid(),
+  category: z.string(),
+  size: z.string(),
+  price: z.number().nonnegative(),
+  photoPath: z.string(),
+});
+
 const PHOTO_URL_EXPIRY_SECONDS = 60 * 60 * 24 * 7;
 const MAX_OUTPUT_TOKENS = 1500;
 
 export interface AiLooksResult {
   looks: AiLookPreview[];
   planName: string | null;
+}
+
+export interface AiLookFavoriteView extends AiLookPreview {
+  id: string;
+  occasion: string;
+  style: string;
+  createdAt: string;
+}
+
+type FavoriteRow = Database["public"]["Tables"]["look_favorites"]["Row"];
+
+async function favoriteView(
+  supabase: Awaited<ReturnType<typeof getFavoriteContext>>["supabase"],
+  row: FavoriteRow,
+): Promise<AiLookFavoriteView> {
+  const parsedPieces = z.array(favoritePieceSchema).safeParse(row.pieces);
+  if (!parsedPieces.success) {
+    throw new Error("Não foi possível carregar um look favorito.");
+  }
+  const pieces = await Promise.all(
+    parsedPieces.data.map(async (piece) => {
+      const { data: signed } = await supabase.storage
+        .from("stock-photos")
+        .createSignedUrl(piece.photoPath, PHOTO_URL_EXPIRY_SECONDS);
+      return {
+        id: piece.id,
+        category: piece.category,
+        size: piece.size,
+        price: piece.price,
+        photoUrl: signed?.signedUrl ?? null,
+      } satisfies LookPiece;
+    }),
+  );
+  return {
+    id: row.id,
+    name: row.name,
+    note: row.note,
+    occasion: row.occasion,
+    style: row.style,
+    pieces,
+    totalPrice: Number(row.total_price),
+    createdAt: row.created_at,
+  };
+}
+
+async function getFavoriteContext() {
+  const { supabase, userId } = await import("@/integrations/supabase/auth-middleware").then(
+    () => ({ supabase: undefined, userId: undefined }),
+  );
+  return { supabase, userId };
 }
 
 /** Extrai o texto da resposta do modelo, parte por parte. */
